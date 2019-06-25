@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Mapbox_Navigation</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiamFja2ltYXJ1OTYiLCJhIjoiY2p3azMzb3k5MG9hZjQzbnh0eHBxY3R3eCJ9.GJ-bMRysY3Rkaojxlf4SgA</string>
+    <string name="user_location_permission_explanation">This app requires location permissions to show its functionality</string>
+    <string name="user_location_permission_not_granted">Location permissions not granted, please grant permissions under settings</string>
+    <string name="new_location">New Lat: %s, New Long: %s</string>
+
+</resources>
