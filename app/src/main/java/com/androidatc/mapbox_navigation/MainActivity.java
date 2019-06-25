@@ -1,14 +1,14 @@
 package com.androidatc.mapbox_navigation;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.mapbox.android.core.location.LocationEngine;
@@ -32,9 +32,10 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
@@ -50,7 +51,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacem
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener,
-    MapboxMap.OnMapClickListener {
+        MapboxMap.OnMapClickListener {
     //private static final int MY_PERMISSION_REQUEST_CODE = 1;
 
     // variables for adding location layer
@@ -74,6 +75,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String TAG = "DirectionsActivity";
     private NavigationMapRoute navigationMapRoute;
 
+    // Variables for navigation
+    private Button button;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.mapboxMap = mapboxMap;
 
         mapboxMap.setStyle(Style.MAPBOX_STREETS,
-                new Style.OnStyleLoaded () {
+                new Style.OnStyleLoaded() {
                     @Override
                     public void onStyleLoaded(@NonNull Style style) {
                         enableLocationComponent(style);
@@ -98,6 +102,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         addDestinationIconSymbolLayer(style);
                         mapboxMap.addOnMapClickListener(MainActivity.this);
+                        button = findViewById(R.id.startButton);
+                        button.setOnClickListener(new View.OnClickListener() {
+
+                            @Override
+                            public void onClick(View v) {
+                                boolean simulateRoute = true;
+                                NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+                                        .directionsRoute(currentRoute)
+                                        .shouldSimulateRoute(simulateRoute)
+                                        .build();
+                                // Call this method with Context from within an Activity
+                                NavigationLauncher.startNavigation(MainActivity.this, options);
+
+                            }
+                        });
                     }
                 });
     }
@@ -130,6 +149,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         getRoute(originPoint, destinationPoint);
+        // Enable navigation button after putting marker
+        button.setEnabled(true);
+        button.setBackgroundResource(R.color.mapboxBlue);
         return true;
     }
 
@@ -146,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         // get generic HTTP info about response
                         Log.d(TAG, "Response code: " + response.code());
                         if (response.body() == null) {
-                            Log.e(TAG, "No routes found, make sure you set the right user and access token." );
+                            Log.e(TAG, "No routes found, make sure you set the right user and access token.");
                             return;
                         } else if (response.body().routes().size() < 1) {
                             Log.e(TAG, "No routes found");
@@ -158,8 +180,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         // Draw the route on the map
                         if (navigationMapRoute != null) {
                             navigationMapRoute.removeRoute();
-                        }
-                        else {
+                        } else {
                             navigationMapRoute = new NavigationMapRoute(null, mapView,
                                     mapboxMap, R.style.NavigationMapRoute);
                         }
@@ -180,9 +201,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // Set the LocationComponent activation options
             LocationComponentActivationOptions locationComponentActivationOptions =
-            LocationComponentActivationOptions.builder(this, loadedMapStyle)
-                    .useDefaultLocationEngine(false)
-                    .build();
+                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
 
             // Activate with the LocationComponentActivationOptions object
             locationComponent.activateLocationComponent(locationComponentActivationOptions);
@@ -289,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onPermissionResult(boolean granted) {
         if (granted) {
-            if(mapboxMap.getStyle() != null) {
+            if (mapboxMap.getStyle() != null) {
                 enableLocationComponent(mapboxMap.getStyle());
             } else {
                 Toast.makeText(this, R.string.user_location_permission_not_granted,
