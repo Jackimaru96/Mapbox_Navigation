@@ -32,6 +32,7 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
@@ -78,6 +79,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     // Variables for navigation
     private Button button;
 
+    // Variables for adding static aircrafts
+    Float[] offset = {0.0f, 1.7f};
+    private final String str[] = {"DIN Offc Pro Italic","Arial Unicode MS Regular"};
+    private final Float[] lat = {1.283482f, 1.284238f};
+    private final Float[] lng = {103.809525f, 103.808490f};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,21 +107,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         enableLocationComponent(style);
                         //TODO: Add static markers
 
+                        // Add the 1st static aircraft with coordinates
+                        // Added using SymbolLayer
+                        style.addImage("marker-icon-id",
+                                BitmapFactory.decodeResource(
+                                        MainActivity.this.getResources(), R.drawable.jet));
+
+                        GeoJsonSource geoJsonSource = new GeoJsonSource("source-id", Feature.fromGeometry(
+                                Point.fromLngLat(lng[0], lat[0])));
+                        style.addSource(geoJsonSource);
+
+                        SymbolLayer symbolLayer = new SymbolLayer("layer-id", "source-id");
+                        symbolLayer.withProperties(
+                                PropertyFactory.iconImage("marker-icon-id"),
+                                PropertyFactory.iconSize(0.5f),
+                                PropertyFactory.textField(String.format("Lat: %f, Lng: %f", lat[0], lng[0])),
+                                PropertyFactory.textOffset(offset),
+                                PropertyFactory.textFont(str)
+                        );
+                        style.addLayer(symbolLayer);
+
+                        // Add 2nd static aicraft with coordinates
+                        // Added using SymbolLayer
+                        style.addImage("marker2-icon-id",
+                                BitmapFactory.decodeResource(
+                                        MainActivity.this.getResources(), R.drawable.jet));
+                        GeoJsonSource geoJsonSource1 = new GeoJsonSource("source2-id", Feature.fromGeometry(
+                                Point.fromLngLat(lng[1], lat[1])));
+                        style.addSource(geoJsonSource1);
+
+                        SymbolLayer symbolLayer1 = new SymbolLayer("layer2-id", "source2-id");
+                        symbolLayer1.withProperties(
+                                PropertyFactory.iconImage("marker2-icon-id"),
+                                PropertyFactory.iconSize(0.5f),
+                                PropertyFactory.textField(String.format("Lat: %f, Lng: %f", lat[1], lng[1])),
+                                PropertyFactory.textOffset(offset),
+                                PropertyFactory.textFont(str)
+                        );
+                        style.addLayer(symbolLayer1);
+
                         addDestinationIconSymbolLayer(style);
                         mapboxMap.addOnMapClickListener(MainActivity.this);
+
+                        // Navigation button
                         button = findViewById(R.id.startButton);
                         button.setOnClickListener(new View.OnClickListener() {
 
                             @Override
                             public void onClick(View v) {
-                                boolean simulateRoute = true;
                                 NavigationLauncherOptions options = NavigationLauncherOptions.builder()
                                         .directionsRoute(currentRoute)
-                                        .shouldSimulateRoute(simulateRoute)
+                                        .shouldSimulateRoute(false)
                                         .build();
                                 // Call this method with Context from within an Activity
                                 NavigationLauncher.startNavigation(MainActivity.this, options);
-
                             }
                         });
                     }
