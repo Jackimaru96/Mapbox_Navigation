@@ -33,6 +33,8 @@ dependencies {
     //Mapbox dependencies
     implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation-ui:0.40.0'
 
-
+    //Unity dependencies
+    implementation project(':ARGPSUnity')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
 }

@@ -1,16 +1,19 @@
 package com.androidatc.mapbox_navigation;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.jackimaru.prototypeFinal.UnityPlayerActivity;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineProvider;
@@ -23,6 +26,8 @@ import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
@@ -85,6 +90,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final Float[] lat = {1.283482f, 1.284238f};
     private final Float[] lng = {103.809525f, 103.808490f};
 
+    // Floating buttons
+    private FloatingActionButton myLocation;
+    private FloatingActionButton arCamera;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +102,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        myLocation = findViewById(R.id.myLocation);
+        myLocation.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                userLocationFAB();
+            }
+        });
+
+        arCamera = findViewById(R.id.ARCameraBtn);
+        arCamera.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                //TODO: Add in package identifier instead of this
+                /*
+                Intent launchIntent = new Intent(MainActivity.this, UnityPlayerActivity.class);
+                if (launchIntent != null) {
+                    startActivity(launchIntent);
+                } else {
+                    Toast.makeText(MainActivity.this, "Unity App Launch Failed", Toast.LENGTH_LONG).show();
+                }*/
+
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.jackimaru.prototypeFinal");
+                if (launchIntent != null) {
+                    startActivity(launchIntent);
+                } else {
+                    Toast.makeText(MainActivity.this, "Unity App Launch Failed", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 
     }
 
@@ -165,6 +206,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         });
                     }
                 });
+    }
+
+    private void userLocationFAB() {
+        FloatingActionButton FAB = findViewById(R.id.myLocation);
+        FAB.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                double lat = mapboxMap.getLocationComponent().getLastKnownLocation().getLatitude();
+                double lng = mapboxMap.getLocationComponent().getLastKnownLocation().getLongitude();
+
+                CameraPosition old = mapboxMap.getCameraPosition();
+                CameraPosition pos = new CameraPosition.Builder()
+                        .target(new LatLng(lat,lng))
+                        .zoom(old.zoom)
+                        .tilt(old.tilt)
+                        .build();
+
+                //LatLng latLng = new LatLng(lat, lng);
+                //mapboxMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos));
+                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(pos),1000);
+            }
+        });
     }
 
     private void addDestinationIconSymbolLayer(Style loadedMapStyle) {
